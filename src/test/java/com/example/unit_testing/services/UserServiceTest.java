@@ -58,24 +58,38 @@ public class UserServiceTest {
 
         assertNotNull(result.getId(), "saved user sould have an id ");
         assertEquals("james ", result.getFirstName(), "firsname should match");
-        assertEquals("doe ", result.getLastName(), "lastname should match");
+        assertEquals("doe", result.getLastName(), "lastname should match");
         assertEquals("james@doe.com", result.getEmail(), "email should match");
 
         verify(userRepository, times(1)).save(user);
     }
 
     @Test
-    public void testUserById_success() {
+    public void testGetUserById_UserExists() {
+        // Arrange
+        // definiera ett user id och skapa en user
         String userId = "1";
         User user = new User();
         user.setId(userId);
-        user.setFirstName("abou ");
-        user.setLastName("cisse");
-        user.setEmail("james@doe.com");
+        user.setFirstName("Nisse");
+        user.setLastName("Jannesson");
+        user.setEmail("janne@gmail.com");
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
+        // Act
+        // förväntade resultatet
         User result = userService.getUserById(userId);
+
+        // Assert
+        // se till user id inte är null och att fältet matchar
+        assertNotNull(result, "Returned user should not be null");
+        assertEquals(userId, result.getId(), "User ID should match");
+        assertEquals("Nisse", result.getFirstName(), "First name should match.");
+        assertEquals("Jannesson", result.getLastName(), "Last name should match.");
+        assertEquals("janne@gmail.com", result.getEmail(), "Email should match.");
+
+        verify(userRepository, times(1)).findById(userId);
     }
 
 
@@ -83,17 +97,21 @@ public class UserServiceTest {
 
 
     @Test
-    public void testgetUserById_userNotFound() {
-
-        //arrange
-        String userId = "not esistent_id";
+    public void testGetUserById_UserDoesNotExists() {
+        // Arrange
+        String userId = "nonexistent_id";
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        //Act
+        // Act
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             userService.getUserById(userId);
-            }, "expeted if but dint");
+        }, "Expected getUserById to throw, but it didn't");
+
+        // Assert
+        assertTrue(exception.getMessage().contains("User not found with id: " + userId));
+
+        verify(userRepository, times(1)).findById(userId);
     }
 
 }
